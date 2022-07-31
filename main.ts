@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, ItemView, WorkspaceLeaf } from 'obsidian';
 
 // Remember to rename these classes and interfaces!
 
@@ -10,8 +10,38 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
 
+const VIEW_TYPE = "calculator-pane";
+
+class CalculatorView extends ItemView {
+	//private readonly plugin: MyPlugin;
+	//private data: RecentFilesData;
+
+	constructor(leaf: WorkspaceLeaf) {
+		super(leaf);
+	  }
+
+	public getDisplayText(): string {
+		return "this is DisplayText";
+	}
+
+	public getViewType(): string {
+		return VIEW_TYPE;
+	}
+
+	async onOpen() {
+		const container = this.containerEl.children[1];
+		container.empty();
+		container.createEl("h4", { text: "Example view" });
+	}
+
+	public getIcon(): string {
+		return 'documents';
+	  }
+}
+
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
+	public view: CalculatorView;
 
 	async onload() {
 		await this.loadSettings();
@@ -65,6 +95,8 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
+		
+		this.registerView(VIEW_TYPE, (leaf) => (this.view = new CalculatorView(leaf)));
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
 
@@ -79,7 +111,7 @@ export default class MyPlugin extends Plugin {
 	}
 
 	onunload() {
-
+		this.app.workspace.detachLeavesOfType(VIEW_TYPE);
 	}
 
 	async loadSettings() {
