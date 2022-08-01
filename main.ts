@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
 
-const VIEW_TYPE = "calculator-pane";
+const VIEW_TYPE = "obs-cal-pane";
 
 class CalculatorView extends ItemView {
 	//private readonly plugin: MyPlugin;
@@ -32,6 +32,7 @@ class CalculatorView extends ItemView {
 		const container = this.containerEl.children[1];
 		container.empty();
 		container.createEl("h4", { text: "Example view" });
+		
 	}
 
 	public getIcon(): string {
@@ -95,10 +96,24 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
+		this.registerView(
+			VIEW_TYPE, 
+			(leaf) => (this.view = new CalculatorView(leaf))
+		);
 		
-		this.registerView(VIEW_TYPE, (leaf) => (this.view = new CalculatorView(leaf)));
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
+
+		if (this.app.workspace.layoutReady)
+		{
+			this.initLeaf();
+		}
+		else
+		{
+			this.registerEvent(
+				this.app.workspace.on('layout-ready', this.initLeaf.bind(this))
+			);
+		}
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -108,6 +123,18 @@ export default class MyPlugin extends Plugin {
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+	}
+
+	private initLeaf(): void
+	{
+		if (this.app.workspace.getLeavesOfType(VIEW_TYPE).length)
+		{
+		  return;
+		}
+
+		this.app.workspace.getRightLeaf(false).setViewState({
+		  type: VIEW_TYPE,
+		});
 	}
 
 	onunload() {
