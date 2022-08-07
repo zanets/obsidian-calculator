@@ -1,37 +1,35 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, ItemView, WorkspaceLeaf } from 'obsidian';
+import { 
+	App, 
+	Modal, 
+	Plugin, 
+	PluginSettingTab, 
+	Setting, 
+	ItemView, 
+	WorkspaceLeaf 
+} from 'obsidian';
 
-// Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
-}
+const PANE_NAME = "obs-cal-pane";
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
-
-const VIEW_TYPE = "obs-cal-pane";
-
-class CalculatorView extends ItemView {
-	//private readonly plugin: MyPlugin;
-	//private data: RecentFilesData;
+class PaneView extends ItemView {
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
-	  }
+	}
 
 	public getDisplayText(): string {
 		return "this is DisplayText";
 	}
 
-	public getViewType(): string {
-		return VIEW_TYPE;
+	public getViewType(): string {                                         
+		return PANE_NAME;
 	}
 
 	async onOpen() {
 		const container = this.containerEl.children[1];
 		container.empty();
-		container.createEl("h4", { text: "Example view" });
+		
+		container.createDiv();
 		
 	}
 
@@ -41,75 +39,20 @@ class CalculatorView extends ItemView {
 }
 
 export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
-	public view: CalculatorView;
+	
+	public pane: PaneView;
 
 	async onload() {
-		await this.loadSettings();
-
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			}
-		});
 
 		this.registerView(
-			VIEW_TYPE, 
-			(leaf) => (this.view = new CalculatorView(leaf))
+			PANE_NAME, 
+			(leaf) => (this.pane = new PaneView(leaf))
 		);
-		
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+	
 
-		if (this.app.workspace.layoutReady)
-		{
+		if (this.app.workspace.layoutReady) {
 			this.initLeaf();
-		}
-		else
-		{
+		} else {
 			this.registerEvent(
 				this.app.workspace.on('layout-ready', this.initLeaf.bind(this))
 			);
@@ -125,72 +68,17 @@ export default class MyPlugin extends Plugin {
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
-	private initLeaf(): void
-	{
-		if (this.app.workspace.getLeavesOfType(VIEW_TYPE).length)
-		{
+	private initLeaf(): void {
+		if (this.app.workspace.getLeavesOfType(PANE_NAME).length) {
 		  return;
 		}
 
 		this.app.workspace.getRightLeaf(false).setViewState({
-		  type: VIEW_TYPE,
+		  type: PANE_NAME,
 		});
 	}
 
 	onunload() {
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE);
-	}
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
-}
-
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+		this.app.workspace.detachLeavesOfType(PANE_NAME);
 	}
 }
