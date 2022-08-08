@@ -1,84 +1,83 @@
 import { 
-	App, 
-	Modal, 
-	Plugin, 
-	PluginSettingTab, 
-	Setting, 
-	ItemView, 
-	WorkspaceLeaf 
+    App, 
+    Modal, 
+    Plugin, 
+    PluginSettingTab, 
+    Setting, 
+    ItemView, 
+    WorkspaceLeaf 
 } from 'obsidian';
+
+import DecimalPane from "./ui/Decimal.svelte";
 
 
 const PANE_NAME = "obs-cal-pane";
 
 class PaneView extends ItemView {
+    decimalPane: DecimalPane;
 
-	constructor(leaf: WorkspaceLeaf) {
-		super(leaf);
-	}
+    constructor(leaf: WorkspaceLeaf) {
+        super(leaf);
+    }
 
-	public getDisplayText(): string {
-		return "this is DisplayText";
-	}
+    public getDisplayText(): string {
+        return "Calclator";
+    }
 
-	public getViewType(): string {                                         
-		return PANE_NAME;
-	}
+    public getViewType(): string {                                         
+        return PANE_NAME;
+    }
 
-	async onOpen() {
-		const container = this.containerEl.children[1];
-		container.empty();
-		
-		container.createDiv();
-		
-	}
+    async onOpen() {
+        this.decimalPane = new DecimalPane({
+            target: this.contentEl,
+            props: {
+                base: 10 
+            }
+        });
+    }
 
-	public getIcon(): string {
-		return 'documents';
-	  }
+    public getIcon(): string {
+        return 'documents';
+    }
+
+    async onClose() {
+        this.decimalPane.$destroy();
+    }
 }
 
 export default class MyPlugin extends Plugin {
-	
-	public pane: PaneView;
 
-	async onload() {
+    public pane: PaneView;
 
-		this.registerView(
-			PANE_NAME, 
-			(leaf) => (this.pane = new PaneView(leaf))
-		);
-	
+    async onload() {
 
-		if (this.app.workspace.layoutReady) {
-			this.initLeaf();
-		} else {
-			this.registerEvent(
-				this.app.workspace.on('layout-ready', this.initLeaf.bind(this))
-			);
-		}
+        this.registerView(
+            PANE_NAME, 
+            (leaf) => (this.pane = new PaneView(leaf))
+        );
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-	}
+        if (this.app.workspace.layoutReady) {
+            this.initLeaf();
+        } else {
+            this.registerEvent(
+                this.app.workspace.on('layout-ready', this.initLeaf.bind(this))
+            );
+        }
+    }
 
-	private initLeaf(): void {
-		if (this.app.workspace.getLeavesOfType(PANE_NAME).length) {
-		  return;
-		}
+    private initLeaf(): void {
+        if (this.app.workspace.getLeavesOfType(PANE_NAME).length) {
+            return;
+        }
 
-		this.app.workspace.getRightLeaf(false).setViewState({
-		  type: PANE_NAME,
-		});
-	}
+        this.app.workspace.getRightLeaf(false).setViewState({
+            type: PANE_NAME,
+        });
+    }
 
-	onunload() {
-		this.app.workspace.detachLeavesOfType(PANE_NAME);
-	}
+    onunload() {
+        this.app.workspace.detachLeavesOfType(PANE_NAME);
+    }
 }
