@@ -32,7 +32,9 @@ class PaneView extends ItemView {
         this.decimalPane = new DecimalPane({
             target: this.contentEl,
             props: {
-                base: 10 
+                base: 10,
+                stagingNumber: "0",
+                express: ""
             }
         });
     }
