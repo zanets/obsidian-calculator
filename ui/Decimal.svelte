@@ -1,6 +1,8 @@
 <script lang="ts">
 
-	enum UnitType {
+	let expression: Unit[];
+
+	enum NotationType {
 		NUM,
 		OP,
 	};
@@ -11,19 +13,24 @@
 		HEX,
 	};
 
-	class Unit {
+	function addNotation(type: NotationType, value: string): void {
+		let newNotation = new Notation(type, value);
+		expression.push(newNotation);
+	}
 
-		constructor(type: UnitType, value: string) {
+	class Notation {
+
+		constructor(type: NotationType, value: string) {
 			this.type = type;
 			this.value = value;
 			switch(this.type) {
-				case UnitType.NUM:
+				case NotationType.NUM:
 					
 			}
 		}
 
 		private value: string;
-		private type: UnitType;
+		private type: NotationType;
 		private base: Base;
 		
 		public GetBase(): Base {
@@ -31,7 +38,7 @@
 		}
 
 		public SetBase(base: Base): void {
-			if (this.type != UnitType.NUM)
+			if (this.type != NotationType.NUM)
 				return;
 
 			switch (base) {
@@ -45,7 +52,7 @@
 
 	}
 
-	let UnitStack: Unit[];
+	
 
     // 2, 8, 10, 16
     export let base: number;
@@ -83,8 +90,7 @@
                 }
                 break;
             default:
-              if ()
-                display.innerText += e.target.innerText;
+				addNotation();
         }
       });
     });

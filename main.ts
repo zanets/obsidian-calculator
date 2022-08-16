@@ -33,7 +33,7 @@ class PaneView extends ItemView {
             target: this.contentEl,
             props: {
                 base: 10,
-                stagingNumber: "0",
+                staging: "0",
                 express: ""
             }
         });
