@@ -1,100 +1,117 @@
 <script lang="ts">
-
-	let expression: Unit[];
-
-	enum NotationType {
-		NUM,
-		OP,
-	};
+	import { create, all, type BigNumber, type ConfigOptions } from "mathjs";
 
 	enum Base {
 		BIN,
 		DEC,
 		HEX,
+	}
+
+	function ResetStaging(): void {
+		staging = "0";
+	}
+
+	function ResetExpression(): void {
+		expression = [];
+	}
+
+	let config: ConfigOptions = {
+		epsilon: 1e-12,
+		matrix: "Matrix",
+		number: "BigNumber",
+		precision: 64,
+		predictable: false,
+		randomSeed: null,
 	};
 
-	function addNotation(type: NotationType, value: string): void {
-		let newNotation = new Notation(type, value);
-		expression.push(newNotation);
+	let math = create(all, config);
+
+	let staging: string = "0";
+	let stagingBin: string;
+	let stagingHex: string;
+	let stagingDec: string;
+	$: {
+		stagingBin = math.bin(staging);
+	}
+	$: {
+		stagingDec = math.evaluate(staging);
+	}
+	$: {
+		stagingHex = math.hex(staging);
+	}
+	function AddStaging(value: string): void {
+		if (staging === "0") {
+			staging = value;
+		} else {
+			staging += value;
+		}
 	}
 
-	class Notation {
-
-		constructor(type: NotationType, value: string) {
-			this.type = type;
-			this.value = value;
-			switch(this.type) {
-				case NotationType.NUM:
-					
-			}
+	let expression: string[] = [];
+	let expressionStr: string;
+	$: { 
+		expressionStr = expression.join(" ");
+	}
+	function AddExpression(value: string): void {
+		if (value === '0') {
+			return;
 		}
-
-		private value: string;
-		private type: NotationType;
-		private base: Base;
-		
-		public GetBase(): Base {
-			return this.base;
-		}
-
-		public SetBase(base: Base): void {
-			if (this.type != NotationType.NUM)
-				return;
-
-			switch (base) {
-				case Base.BIN:
-					
-					
-
-			}
-		}
-
-
+		expression.push(value);
+		expression = expression;
+	}
+	function evaluate(): string {
+		let result: BigNumber = math.evaluate(expression.join(""));
+		return result.toString();
 	}
 
-	
+	function onClick(event: Event): void {
+		const input = (event.target as HTMLElement).innerHTML;
+		switch(input) {
+			case '+':
+			case '-':
+			case '*':
+			case '/':
+			case '(':
+			case ')':
+				AddExpression(staging);
+				AddExpression(input);
+				ResetStaging();
+				break;
+			case '.':
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				AddStaging(input);
+				break;
+			case '=':
+				AddExpression(staging);
+				let result: string = evaluate();
+				staging = result;
+				ResetExpression();
+				break;
+			case 'C':
+				ResetStaging();
+				break;
+			case 'AC':
+				ResetExpression();
+				ResetStaging();
+				break;
+		} 
+	}
 
-    // 2, 8, 10, 16
-    export let base: number;
-    export let staging: string;
-    export let express: string;
+	function main() {
+		ResetStaging();
+		ResetExpression();
+	}
 
-    let stagingBin: string;
-    let stagingDec: string;
-    let stagingHex: string;
-    
-    function toBase(inbase: number): void {
-        base = inbase;
-
-    }
-
-    let btns = Array.from(document.getElementsByClassName('cal-btns'));
-
-    btns.map( btn => {
-      btn.addEventListener('click', (e) => {
-        const input = e.target as HTMLElement;
-        switch(input.innerText){
-            case 'C':
-                display.innerText = '';
-                break;
-            case '=':
-                try{
-                    display.innerText = eval(display.innerText);
-                } catch {
-                    display.innerText = "Error"
-                }
-                break;
-            case '←':
-                if (display.innerText){
-                   display.innerText = display.innerText.slice(0, -1);
-                }
-                break;
-            default:
-				addNotation();
-        }
-      });
-    });
-
+	main();
 </script>
 
 <div class="number">
@@ -107,7 +124,7 @@
     -->
 
 	<div id="cal-container">
-		<div id="cal-display-express">{express}</div>
+		<div id="cal-display-express">{expressionStr}</div>
 		<div id="cal-display">{staging}</div>
 		<div id="cal-display-bin">
 			<div class="cal-base-btn">BIN</div>
@@ -122,31 +139,32 @@
 			{stagingHex}
 		</div>
 		<div class="cal-btns">
-			<div class="cal-btn">+</div>
-			<div class="cal-btn">-</div>
-			<div class="cal-btn">*</div>
-			<div class="cal-btn">(</div>
-			<div class="cal-btn">)</div>
-			<div class="cal-btn">/</div>
-			<div class="cal-btn">7</div>
-			<div class="cal-btn">8</div>
-			<div class="cal-btn">9</div>
-			<div class="cal-btn">4</div>
-			<div class="cal-btn">5</div>
-			<div class="cal-btn">6</div>
-			<div class="cal-btn">1</div>
-			<div class="cal-btn">2</div>
-			<div class="cal-btn">3</div>
-			<div class="cal-btn">A</div>
-			<div class="cal-btn">B</div>
-			<div class="cal-btn">C</div>
-			<div class="cal-btn">D</div>
-			<div class="cal-btn">E</div>
-			<div class="cal-btn">F</div>
-			<div class="cal-btn">←</div>
-			<div class="cal-btn">.</div>
-			<div class="cal-btn">C</div>
-			<div class="cal-btn">=</div>
+			<div class="cal-btn" on:click={onClick}>+</div>
+			<div class="cal-btn" on:click={onClick}>-</div>
+			<div class="cal-btn" on:click={onClick}>*</div>
+			<div class="cal-btn" on:click={onClick}>(</div>
+			<div class="cal-btn" on:click={onClick}>)</div>
+			<div class="cal-btn" on:click={onClick}>/</div>
+			<div class="cal-btn" on:click={onClick}>7</div>
+			<div class="cal-btn" on:click={onClick}>8</div>
+			<div class="cal-btn" on:click={onClick}>9</div>
+			<div class="cal-btn" on:click={onClick}>4</div>
+			<div class="cal-btn" on:click={onClick}>5</div>
+			<div class="cal-btn" on:click={onClick}>6</div>
+			<div class="cal-btn" on:click={onClick}>1</div>
+			<div class="cal-btn" on:click={onClick}>2</div>
+			<div class="cal-btn" on:click={onClick}>3</div>
+			<div class="cal-btn" on:click={onClick}>A</div>
+			<div class="cal-btn" on:click={onClick}>B</div>
+			<div class="cal-btn" on:click={onClick}>C</div>
+			<div class="cal-btn" on:click={onClick}>D</div>
+			<div class="cal-btn" on:click={onClick}>E</div>
+			<div class="cal-btn" on:click={onClick}>F</div>
+			<div class="cal-btn" on:click={onClick}>←</div>
+			<div class="cal-btn" on:click={onClick}>.</div>
+			<div class="cal-btn" on:click={onClick}>C</div>
+			<div class="cal-btn" on:click={onClick}>AC</div>
+			<div class="cal-btn" on:click={onClick}>=</div>
 		</div>
 	</div>
 </div>
@@ -167,11 +185,11 @@
 
 	#cal-display-express {
 		text-align: right;
-		height: 70px;
+		height: 90px;
 		line-height: 70px;
 		padding: 16px 8px;
-		font-size: 8px;
-		color: gainsboro;
+		font-size: 12px;
+		color: rgb(105, 105, 105);
 	}
 
 	.cal-btns {
