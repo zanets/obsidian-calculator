@@ -126,18 +126,13 @@
 	<div id="cal-container">
 		<div id="cal-display-express">{expressionStr}</div>
 		<div id="cal-display">{staging}</div>
-		<div id="cal-display-bin">
-			<div class="cal-base-btn">BIN</div>
-			{stagingBin}
+
+		<div id="cal-display-num">
+			<div class="cal-base-btn">BIN</div><div>{stagingBin}</div>
+			<div class="cal-base-btn">DEC</div><div>{stagingDec}</div>
+			<div class="cal-base-btn">HEX</div><div>{stagingHex}</div>
 		</div>
-		<div id="cal-display-dec">
-			<div class="cal-base-btn">DEC</div>
-			{stagingDec}
-		</div>
-		<div id="cal-display-hex">
-			<div class="cal-base-btn">HEX</div>
-			{stagingHex}
-		</div>
+
 		<div class="cal-btns">
 			<div class="cal-btn" on:click={onClick}>+</div>
 			<div class="cal-btn" on:click={onClick}>-</div>
@@ -190,6 +185,17 @@
 		padding: 16px 8px;
 		font-size: 12px;
 		color: rgb(105, 105, 105);
+	}
+
+	#cal-display-num {
+		display: grid;
+  		width: 100%;
+  		
+  		grid-template-areas: "btn   num"
+                       		 "btn   num"
+                       		 "btn   num";
+  		grid-template-rows: auto;
+  		grid-template-columns: 10% 90%;
 	}
 
 	.cal-btns {
