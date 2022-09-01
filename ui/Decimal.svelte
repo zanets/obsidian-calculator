@@ -52,6 +52,7 @@
 	$: { 
 		expressionStr = expression.join(" ");
 	}
+	
 	function AddExpression(value: string): void {
 		if (value === '0') {
 			return;
@@ -59,6 +60,7 @@
 		expression.push(value);
 		expression = expression;
 	}
+
 	function evaluate(): string {
 		let result: BigNumber = math.evaluate(expression.join(""));
 		return result.toString();
@@ -106,9 +108,50 @@
 		} 
 	}
 
+	function RegisterKeyboardInput() {
+		document.addEventListener('keydown', (event) => {
+			const input = event.key;
+			if (event.shiftKey) {
+
+			} else {
+				switch(input) {
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+					AddStaging(input);
+					break;
+				case 'Multiply':
+				case 'Add':
+				case 'Divide':
+				case 'Subtract':
+					AddExpression(staging);
+					AddExpression(input);
+					ResetStaging();
+					break;
+				case 'Enter':
+					AddExpression(staging);
+					let result: string = evaluate();
+					staging = result;
+					ResetExpression();
+					break;
+				}
+			}
+			
+    		
+		});
+	}
+
 	function main() {
 		ResetStaging();
 		ResetExpression();
+		RegisterKeyboardInput();
 	}
 
 	main();
