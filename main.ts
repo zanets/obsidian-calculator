@@ -39,6 +39,8 @@ class PaneView extends ItemView {
         });
     }
 
+
+
     public getIcon(): string {
         return 'documents';
     }

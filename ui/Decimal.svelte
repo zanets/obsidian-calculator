@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { create, all, type BigNumber, type ConfigOptions } from "mathjs";
+	import { create, all, type BigNumber, type ConfigOptions, indexDependencies } from "mathjs";
+	import {onMount} from 'svelte';
+
 
 	enum Base {
 		BIN,
+		OCT,
 		DEC,
 		HEX,
 	}
@@ -28,16 +31,20 @@
 
 	let staging: string = "0";
 	let stagingBin: string;
+	let stagingOCT: string;
 	let stagingHex: string;
 	let stagingDec: string;
 	$: {
-		stagingBin = math.bin(staging);
+		stagingBin = math.bin(staging).substring(2);
+	}
+	$: {
+		stagingOCT = math.oct(staging).substring(2);
 	}
 	$: {
 		stagingDec = math.evaluate(staging);
 	}
 	$: {
-		stagingHex = math.hex(staging);
+		stagingHex = math.hex(staging).substring(2);
 	}
 	function AddStaging(value: string): void {
 		if (staging === "0") {
@@ -154,7 +161,18 @@
 		RegisterKeyboardInput();
 	}
 
+	const KEYBOARD = [
+		'A', '', '', 'C', '',
+		'B', '(', ')', '', '/',
+		'C', '7', '8', '9', '*',
+		'D', '4', '5', '6', '-',
+		'E', '1', '2', '3', '+',
+		'F', 'negative', '0', '.', '=',
+
+	];
 	main();
+
+	
 </script>
 
 <div class="number">
@@ -170,39 +188,17 @@
 		<div id="cal-display-express">{expressionStr}</div>
 		<div id="cal-display">{staging}</div>
 
-		<div id="cal-display-num">
-			<div class="cal-base-btn">BIN</div><div>{stagingBin}</div>
-			<div class="cal-base-btn">DEC</div><div>{stagingDec}</div>
-			<div class="cal-base-btn">HEX</div><div>{stagingHex}</div>
+		<div class="cal-display-nums">
+			<div class="cal-display-num">BIN</div><div class="cal-display-num">{stagingBin}</div>
+			<div class="cal-display-num">OCT</div><div class="cal-display-num">{stagingOCT}</div>
+			<div class="cal-display-num">DEC</div><div class="cal-display-num">{stagingDec}</div>
+			<div class="cal-display-num">HEX</div><div class="cal-display-num">{stagingHex}</div>
 		</div>
 
-		<div class="cal-btns">
-			<div class="cal-btn" on:click={onClick}>+</div>
-			<div class="cal-btn" on:click={onClick}>-</div>
-			<div class="cal-btn" on:click={onClick}>*</div>
-			<div class="cal-btn" on:click={onClick}>(</div>
-			<div class="cal-btn" on:click={onClick}>)</div>
-			<div class="cal-btn" on:click={onClick}>/</div>
-			<div class="cal-btn" on:click={onClick}>7</div>
-			<div class="cal-btn" on:click={onClick}>8</div>
-			<div class="cal-btn" on:click={onClick}>9</div>
-			<div class="cal-btn" on:click={onClick}>4</div>
-			<div class="cal-btn" on:click={onClick}>5</div>
-			<div class="cal-btn" on:click={onClick}>6</div>
-			<div class="cal-btn" on:click={onClick}>1</div>
-			<div class="cal-btn" on:click={onClick}>2</div>
-			<div class="cal-btn" on:click={onClick}>3</div>
-			<div class="cal-btn" on:click={onClick}>A</div>
-			<div class="cal-btn" on:click={onClick}>B</div>
-			<div class="cal-btn" on:click={onClick}>C</div>
-			<div class="cal-btn" on:click={onClick}>D</div>
-			<div class="cal-btn" on:click={onClick}>E</div>
-			<div class="cal-btn" on:click={onClick}>F</div>
-			<div class="cal-btn" on:click={onClick}>←</div>
-			<div class="cal-btn" on:click={onClick}>.</div>
-			<div class="cal-btn" on:click={onClick}>C</div>
-			<div class="cal-btn" on:click={onClick}>AC</div>
-			<div class="cal-btn" on:click={onClick}>=</div>
+		<div id="cal-btns">
+			{#each KEYBOARD as key}
+				<div class="cal-btn" on:click={onClick}>{key}</div>
+			{/each}
 		</div>
 	</div>
 </div>
@@ -230,25 +226,29 @@
 		color: rgb(105, 105, 105);
 	}
 
-	#cal-display-num {
+	.cal-display-nums {
 		display: grid;
   		width: 100%;
   		
-  		grid-template-areas: "btn   num"
-                       		 "btn   num"
-                       		 "btn   num";
+  		grid-template-areas: "btn   num";
   		grid-template-rows: auto;
   		grid-template-columns: 10% 90%;
 	}
 
-	.cal-btns {
+	.cal-display-num:hover {
+		background-color: #e0e4d9;
+		color: white;
+		transition: 0.1s ease-in-out;
+	}
+
+	#cal-btns {
 		display: grid;
 		border-bottom: 1px solid #999;
 		border-left: 1px solid#999;
-		grid-template-columns: 1fr 1fr 1fr 1fr;
+		grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 	}
 
-	.cal-btns > div {
+	#cal-btns > div {
 		border-top: 1px solid #999;
 		border-right: 1px solid#999;
 	}
